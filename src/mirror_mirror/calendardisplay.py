@@ -1,24 +1,22 @@
-from pyggi.javascript import JavascriptClass
+from mirror_mirror import BaseUpdater
 
 
-class Calendar(JavascriptClass):
+class Calendar(BaseUpdater):
+    """
+    Updates a full calendar (month) view
+    """
 
     def __init__(self, webview):
-        self.context = webview.get_main_frame().get_global_context()
-        self.webview = webview
-
-    def start(self):
-        self.webview.on_view_ready(self._start)
-
-    def _start(self):
-        self._ = self.context.get_jsobject("$")
-        self.update()
-        setInterval = self.context.get_jsobject("window").setInterval
-        setInterval(self.update, 12*3600*1000)
+        super(Calendar, self).__init__(webview,  12*60*60*1000)
 
     def before_show_day(self, date):
+        """
+        callback from calendar that prevents dates as showing as clickable links
+        and also highlights current date
+        :param date: date to process
+        :return: array triplet per javascript spec on (1) if to treat as link, (2) css to be applied, (3) not used here
+        """
         Date = self.context.get_jsobject("Date")
-        show = self.context.get_jsobject("show")
         now = " ".join(Date().split(' ')[:3])
         is_today = date.toDateString().startswith(now)
         if is_today:
@@ -26,10 +24,11 @@ class Calendar(JavascriptClass):
         else:
             css = ""
         return [False, css , None]
-        #  return False # do not show selectable dates
 
     def update(self, *args):
-        print "CALENDAR UPDATE"
+        """
+        Invoke jquery's datepicker
+        """
         self._('#calendar').datepicker({
             'inline': True,
             'firstDay': 1,

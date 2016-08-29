@@ -7,8 +7,11 @@ import threading
 
 
 class HTTPServer(object):
+    """
+    To serve remote files (e.g. css, javascript, )
+    """
 
-    PORT = 45675
+    PORT = 4567
 
     def __init__(self):
         class Handler(SimpleHTTPServer.SimpleHTTPRequestHandler):

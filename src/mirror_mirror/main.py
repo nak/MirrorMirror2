@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import gobject
 
 from pyggi.gtk3 import GtkWindow, GtkScrolledWindow
 from pyggi import gtk3
@@ -7,8 +6,10 @@ from pyggi.webkit3 import WebKitWebView
 from mirror_mirror import server
 from mirror_mirror.weather import WeatherUpdater
 from mirror_mirror.clock import Clock
-from mirror_mirror.calendar import Calendar
-from mirror_mirror.events import Events
+from mirror_mirror.calendardisplay import Calendar
+from mirror_mirror.news import NewsUpdater
+from mirror_mirror.events import EventsUpdater
+from mirror_mirror.motd import MOTDUpdater
 
 srvr = server.HTTPServer.start()
 
@@ -20,7 +21,6 @@ window.add( scrolled )
 webview = WebKitWebView()
 scrolled.add( webview )
 
-#webview.open( "http://www.python.org" )
 html="""
 <html class="no-js" lang="">
     <head>
@@ -39,47 +39,25 @@ html="""
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
     <script src="/js/vendor/jquery.simpleWeather.min.js"></script>
         <script src="/js/vendor/js/jquery-ui-datepicker.min.js"></script>
-        <script src="/js/skycons.js"></script>
         <script src="js/plugins.js"></script>
-        <script type="text/javascript">
-
-      /**
-       * Check if current user has authorized this application.
-       */
-       function handleResult(res){
-        alert(JSON.stringify(res));
-       }
-
-        function myauth(d, func){
-            alert("" + JSON.stringify(d) + "    " + d["immediate"] + "     " +func);
-
-            gapi.auth.authorize({'client_id': d["client_id"],
-                                 'scope': d["scope"],
-                                 'immediate': d["immediate"]},
-                                 d["immediate"]?func:handleResult);
-        }
-
-      function checkAuth() {
-         mirror_mirror.events.Events.new_();
-        /* client_id = "845856401252-hv7tno9akjgipl2kl2669fqpe4pg7qqa.apps.googleusercontent.com";
-         scopes = ["https://www.googleapis.com/auth/calendar.readonly"];
-        gapi.auth.authorize({'client_id': client_id,
-                             'scope': scopes[0],
-                             'immediate': true},
-                             handleResult);*/
-        }
-      </script>
-         <script src="https://apis.google.com/js/client.js?onload=checkAuthNOT"></script>
           <script src="js/main.js"></script>
    </head>
     <body >
     <div style='width:100%'>
-        <div id="weather" style='width:50%;display:inline-block'>
+        <div style='width:50%;float:left;z-index:5;displayh:inline-block'>
+        <div id="weather">
 
+        </div>
+        <br/>
+        <h2><i>News</i></h2>
+        <div id="news" style='width:60%'>
+        </div>
         </div>
         <div  style='width:25%;float:right;z-index:10; display:inline-block'>
           <div id='date'></div>
           <div id='calendar'></div>
+          <h2><i>Upcoming Events</i></h2>
+          <div id='events'></div>
         </div>
         </div>
         <p id="greeting">
@@ -98,7 +76,9 @@ window.connect("delete-event", gtk3.main_quit )
 WeatherUpdater(webview).start()
 Clock(webview).start()
 Calendar(webview).start()
-#Events.set_view(webview)
+NewsUpdater(webview).start()
+EventsUpdater(webview).start()
+MOTDUpdater(webview).start()
 
 def main():
     gtk3.main()
