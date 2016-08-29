@@ -28,7 +28,7 @@ class BaseUpdater(object):
         Pause GUI information updates
         """
         if cls.interval is not None and cls.context is not None:
-            cancelInterval = cls.context.get_jsobject("window").cancelInterval
+            cancelInterval = cls.context.get_jsobject("window").clearInterval
             cancelInterval(BaseUpdater.interval)
             BaseUpdater.interval = None
 

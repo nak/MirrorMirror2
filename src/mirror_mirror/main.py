@@ -46,7 +46,8 @@ html="""
     <div style='width:100%'>
         <div style='width:50%;float:left;z-index:5;displayh:inline-block'>
         <div id="weather">
-
+            <canvas id="weather-icon" width="128" height="128"></canvas><h2 id='weather_temp'> %(weather_temp)s&deg %(weather_units_temp)s</h2>
+            <div id='weather_text'></div>
         </div>
         <br/>
         <h2><i>News</i></h2>

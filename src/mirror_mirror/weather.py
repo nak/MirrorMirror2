@@ -436,7 +436,7 @@ class WeatherAnimator(object):
         # so always fall back to setInterval for now
         if True or not self.requestAnimationFrame or not self.cancelAnimationFrame:
             self.request_interval = context.get_jsobject("window").setInterval
-            self.cancel_interval = context.get_jsobject("window").cancelInterval
+            self.cancel_interval = context.get_jsobject("window").clearInterval
         self.loop = None
         self.drawing_elems = {}
         self.interval = None
@@ -487,23 +487,24 @@ class WeatherAnimator(object):
 
     def __drawfunct(self, *_):
         now = (datetime.utcnow() - datetime(1970, 1, 1)).total_seconds()
-        if now - self.prev_now > 0.1:
-            self.prev_now = now
-            now *= 1000.0  # to milliseconds
-            for item in self.drawing_elems.values():
-                try:
-                    item.draw(now)
-                except:
-                    import traceback
-                    traceback.print_exc()
-                    print "Faild to draw %s" % item.draw
+
+        self.prev_now = now
+        now *= 1000.0  # to milliseconds
+        for item in self.drawing_elems.values():
+            try:
+                item.draw(now)
+            except:
+                import traceback
+                traceback.print_exc()
+                print "Failed to draw %s" % item.draw
 
     def play(self):
         self.pause()
-        self.request_interval(self.__drawfunct, 1000 / 60)
+        if self.interval is None:
+            self.interval = self.request_interval(self.__drawfunct, 1000 / 10)
 
     def pause(self):
-        if self.interval:
+        if self.interval is not None:
             self.cancel_interval(self.interval)
             self.interval = None
 
@@ -562,12 +563,11 @@ class WeatherUpdater(BaseUpdater):
 
     def __init__(self, webview):
         super(WeatherUpdater, self).__init__(webview,  5 * 60 * 1000)
+        self.skycons = None
+        self.animation = None
 
     def update_view(self, weather):
-        _ = self._
-        skycons = WeatherAnimator(self.context, {"color": "white"})
         html = """
-<canvas id="weather-icon" width="128" height="128"></canvas><h2> %(weather_temp)s&deg %(weather_units_temp)s</h2>
 <div id="region">%(weather_city)s, %(weather_region)s</div>
 <div>%(weather_currently)s</div>
 <div>%(weather_wind_direction)s %(weather_wind_speed)s %(weather_units_speed)s</div>
@@ -577,29 +577,32 @@ class WeatherUpdater(BaseUpdater):
                        'weather_currently': weather.currently,
                        'weather_wind_direction': weather.wind.direction,
                        'weather_wind_speed': weather.wind.speed,
-                       'weather_temp': weather.temp,
                        'weather_units_speed': weather.units.speed,
-                       'weather_units_temp': weather.units.temp,
                        'weather_high': weather.high,
                        'weather_low': weather.low}
-
-        _("#weather").html(html)
-        _("#weather").html(html)
+        self._('#weather_temp').html('%(weather_temp)s&deg %(weather_units_temp)s' % {
+                       'weather_temp': weather.temp, 'weather_units_temp': weather.units.temp,
+                        })
+        self._("#weather_text").html(html)
+        self._("#weather_text").html(html)
 
         if int(weather.code) > 48:
             weather.code = 48
         animation = WeatherUpdater.animations[max(min(int(weather.code), 48), 0)]
-        skycons.remove('weather-icon')
-        #  you can add a canvas by it's ID...
-        # console.log(animation)
-        skycons.add("weather-icon", animation)
-        skycons.play()
-        return True
+        if self.skycons is None:
+            self.skycons = WeatherAnimator(self.context, {"color": "white"})
+        if animation != self.animation:
+            self.skycons.remove('weather-icon')
+            #  you can add a canvas by it's ID...
+            # console.log(animation)
+            self.skycons.add("weather-icon", animation)
+            self.skycons.play()
+            self.animation = animation
 
     def update_error(self, error):
         show = self.context.get_jsobject("show")
         show(error)
-        _("#weather").html('<p>' + error + '</p>')
+        self._("#weather").html('<p>' + error + '</p>')
 
     def update(self):
         """

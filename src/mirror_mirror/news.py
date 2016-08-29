@@ -1,4 +1,5 @@
 import json
+import os.path
 
 import requests
 from mirror_mirror import BaseUpdater
@@ -8,11 +9,21 @@ class NewsUpdater(BaseUpdater):
     Updates a view related to latest news
     """
 
-    api_key = 'cc0ff410c2054f5aadd2a5b1a6e14ba0'
+    CREDENTIAL_PATH = os.path.join(os.path.expanduser("~"), ".credentials", "nytimes.key")
+    api_key = None
 
     def __init__(self, webview):
-        super(NewsUpdater, self).__init__(webview, 12*60*60*1000)
+        if self.get_key():
+            super(NewsUpdater, self).__init__(webview, 12*60*60*1000)
 
+    @classmethod
+    def get_key(cls):
+        try:
+            with open(cls.CREDENTIAL_PATH, 'r') as f:
+                cls.api_key = f.read().strip()
+        except:
+            return None
+        return cls.api_key
 
     @classmethod
     def get_resource(cls, section, limit=5):
