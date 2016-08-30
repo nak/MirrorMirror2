@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 import glob
 
 setup(name="MirrorMirror2",
-      version="1.0.1",
+      version="1.0.2",
       packages=["mirror_mirror"],  # find_packages(),
       scripts=[],
 

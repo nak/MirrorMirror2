@@ -3,12 +3,9 @@ import os
 from pkg_resources import resource_filename
 from apiclient import discovery
 import oauth2client
-from oauth2client import client
-from oauth2client import tools
+import glob
 
 from datetime import datetime
-
-from pyggi.javascript import JavascriptClass
 
 from mirror_mirror import BaseUpdater
 
@@ -22,8 +19,8 @@ class Credentials(object):
     CLIENT_SECRET_FILE = resource_filename("mirror_mirror", os.path.join('resources','events','client.json'))
     APPLICATION_NAME = 'Google Calendar API Python Quickstart'
 
-    def __init__(self, username):
-        self.username = username
+    def __init__(self, path):
+        self.credential_path = path
 
     def get_credentials(self):
         """Gets valid user credentials from storage.
@@ -34,14 +31,7 @@ class Credentials(object):
         Returns:
             Credentials, the obtained credential.
         """
-        home_dir = os.path.expanduser('~')
-        credential_dir = os.path.join(home_dir, '.credentials')
-        if not os.path.exists(credential_dir):
-            os.makedirs(credential_dir)
-        credential_path = os.path.join(credential_dir,
-                                       '%s-calendar-python.json' % self.username)
-
-        store = oauth2client.file.Storage(credential_path)
+        store = oauth2client.file.Storage(self.credential_path)
         credentials = store.get()
         #if not credentials or credentials.invalid:
         #    flow = client.flow_from_clientsecrets(Credentials.CLIENT_SECRET_FILE, Credentials.SCOPES)
@@ -73,14 +63,18 @@ class Credentials(object):
                 orderBy='startTime').execute()
             events += eventsResult.get('items', [])
 
-        return events if events else "[%s] No events scheduled for today" % self.username
+        return events if events else "No events scheduled for today"
 
 
 class EventsUpdater(BaseUpdater):
 
     def __init__(self, webview):
         BaseUpdater.__init__(self, webview, 15*60*1000)
-        self.credentials = [Credentials(user) for user in ['jrusnak', 'jpolland']]
+        home_dir = os.path.expanduser('~')
+        credential_dir = os.path.join(home_dir, '.credentials', 'mirrormirror2')
+        if not os.path.exists(credential_dir):
+            os.makedirs(credential_dir)
+        self.credentials = [Credentials(path) for path in glob.glob(os.path.join(credential_dir, "*.json"))]
 
     def update(self):
         """
@@ -91,16 +85,14 @@ class EventsUpdater(BaseUpdater):
             events = cred.list_events()
             if isinstance(events, str):
                 text += "<p>%s<p>" % events
-            elif events is None:
-                text += "<p><i>No authorization for %s</i></p>" % cred.username
             else:
                 for event in events:
                     start = event['start'].get('dateTime', event['start'].get('date'))
-                    text += u"""<p><div style="display:inline;width:20%%">%(start)s</div>
+                    text += u"""<p><div style="display:inline;width:20%%">%(start)s</div><br/>
                     <div style="display:inline;width:75%%">[<b>%(user)s</b>] %(summary)s</div></p>""" % {
                         'start': start,
-                        'user': cred.username,
-                        'summary': event['summary']}
+                        'user': event.get('creator',{'displayName': ""})['displayName'],
+                        'summary': event.get('summary', "<no summary>")}
         text += "</div>"
         self._('#events').html(text)
 

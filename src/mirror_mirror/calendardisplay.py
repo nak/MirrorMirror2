@@ -7,7 +7,7 @@ class Calendar(BaseUpdater):
     """
 
     def __init__(self, webview):
-        super(Calendar, self).__init__(webview,  12*60*60*1000)
+        super(Calendar, self).__init__(webview,  60*1000)
 
     def before_show_day(self, date):
         """
@@ -40,3 +40,4 @@ class Calendar(BaseUpdater):
             'beforeShowDay': self.before_show_day,
             'dayNamesMin': ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
             })
+        self._('#calendar').datepicker("refresh")
