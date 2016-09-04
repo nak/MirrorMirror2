@@ -48,10 +48,10 @@ class Credentials(object):
             return None
         http = credentials.authorize(httplib2.Http())
         service = discovery.build('calendar', 'v3', http=http)
-
-        now = datetime.utcnow()
-        now = datetime(now.year, now.month, now.day, 0, 0)
-        timeMax = datetime(now.year, now.month, now.day, 23, 59)
+        now = datetime.now()
+        delta = datetime.utcnow() - now
+        now = datetime(now.year, now.month, now.day, 0, 0) + delta
+        timeMax = datetime(now.year, now.month, now.day, 23, 59) + delta
         now = now .isoformat() + 'Z' # 'Z' indicates UTC time
         timeMax = timeMax.isoformat() + 'Z'
         calendars = service.calendarList().list().execute()['items']
