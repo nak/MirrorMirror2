@@ -3,13 +3,13 @@ from setuptools import setup, find_packages
 import glob
 
 setup(name="MirrorMirror2",
-      version="1.0.3",
+      version="1.0.4",
       packages=["mirror_mirror"],  # find_packages(),
       scripts=[],
 
       # Project uses reStructuredText, so ensure that the docutils get
       # installed or upgraded on the target machine
-      install_requires=['PyGGI>=1.0.1',
+      install_requires=['PyGGI>=1.0.4',
                         'google-api-python-client>=1.5.2',
                         'requests>=2.11.1',
                         'webapp2>=2.5.2',

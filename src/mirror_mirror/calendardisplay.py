@@ -9,13 +9,16 @@ class Calendar(BaseUpdater):
     def __init__(self, webview):
         super(Calendar, self).__init__(webview,  60*1000)
 
-    def before_show_day(self, date):
+    def before_show_day(self, *args):
         """
         callback from calendar that prevents dates as showing as clickable links
         and also highlights current date
         :param date: date to process
         :return: array triplet per javascript spec on (1) if to treat as link, (2) css to be applied, (3) not used here
         """
+        if len(args)==0:
+            return None
+        date = args[0]
         Date = self.context.get_jsobject("Date")
         now = " ".join(Date().split(' ')[:3])
         is_today = date.toDateString().startswith(now)
