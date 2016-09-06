@@ -74,22 +74,31 @@ class WeatherAnimator(object):
             self.drawfunct = drawfunct
             self.color = color
             self.resize_clear = resize_clear
-
-            self.context.set(self.jsctxt, 'strokeStyle', color)
-            self.context.set(self.jsctxt, 'fillStyle', color)
-            self.context.set(self.jsctxt, 'lineCap', "round")
-            self.context.set(self.jsctxt, 'lineJoin', "round")
+            self.context_set = self.context.set
+            self.context_set(self.jsctxt, 'strokeStyle', color)
+            self.context_set(self.jsctxt, 'fillStyle', color)
+            self.context_set(self.jsctxt, 'lineCap', "round")
+            self.context_set(self.jsctxt, 'lineJoin', "round")
+            # cache lookups to javascript, since we don't expect these
+            #function attributes to change:
+            self.context_arc = self.context.arc
+            self.context_fill = self.context.fill
+            self.context_beginPath = self.context.beginPath
+            self.context_closePath = self.context.closePath
+            self.context_moveTo = self.context.moveTo
+            self.context_lineTo = self.context.lineTo
+            self.context_stroke = self.context.stroke
 
         def draw_circle(self, x, y, r):
-            self.context.beginPath()
-            self.context.arc(x, y, r, 0, WeatherAnimator.TAU, False)
-            self.context.fill()
+            self.context_beginPath()
+            self.context_arc(x, y, r, 0, WeatherAnimator.TAU, False)
+            self.context_fill()
 
         def draw_line(self, ax, ay, bx, by):
-            self.context.beginPath()
-            self.context.moveTo(ax, ay)
-            self.context.lineTo(bx, by)
-            self.context.stroke()
+            self.context_beginPath()
+            self.context_moveTo(ax, ay)
+            self.context_lineTo(bx, by)
+            self.context_stroke()
 
         def draw_puff(self, t, cx, cy, rx, ry, rmin, rmax):
             c = math.cos(t * WeatherAnimator.TAU)
@@ -113,9 +122,9 @@ class WeatherAnimator(object):
 
             self.draw_puffs(t, cx, cy, a, b, c, d)
 
-            self.context.set(self.jsctxt, 'globalCompositeOperation', 'destination-out')
+            self.context_set(self.jsctxt, 'globalCompositeOperation', 'destination-out')
             self.draw_puffs(t, cx, cy, a, b, c - s, d - s)
-            self.context.set(self.jsctxt, 'globalCompositeOperation', 'source-over')
+            self.context_set(self.jsctxt, 'globalCompositeOperation', 'source-over')
 
         def draw_sun(self, t, cx, cy, cw, s):
             t /= 12000
@@ -124,10 +133,10 @@ class WeatherAnimator(object):
             b = cw * 0.32 + s * 0.5
             c = cw * 0.50 - s * 0.5
 
-            self.context.set(self.jsctxt, 'lineWidth', s)
-            self.context.beginPath()
-            self.context.arc(cx, cy, a, 0, WeatherAnimator.TAU, False)
-            self.context.stroke()
+            self.context_set(self.jsctxt, 'lineWidth', s)
+            self.context_beginPath()
+            self.context_arc(cx, cy, a, 0, WeatherAnimator.TAU, False)
+            self.context_stroke()
 
             for i in reversed(range(8)):
                 p = ((t + i + 1) / 8.0) * WeatherAnimator.TAU
@@ -143,17 +152,17 @@ class WeatherAnimator(object):
             c = math.cos(t * WeatherAnimator.TAU)
             p = c * WeatherAnimator.TAU / (-16.0)
 
-            self.context.set(self.jsctxt, 'lineWidth', s)
+            self.context_set(self.jsctxt, 'lineWidth', s)
 
             cx += c * b
 
-            self.context.beginPath()
-            self.context.arc(cx, cy, a, p + WeatherAnimator.TAU / 8.0, p + WeatherAnimator.TAU * 7 / 8.0, False)
-            self.context.arc(cx + math.cos(p) * a * WeatherAnimator.TWO_OVER_SQRT_2, cy + math.sin(p) * a *
+            self.context_beginPath()
+            self.context_arc(cx, cy, a, p + WeatherAnimator.TAU / 8.0, p + WeatherAnimator.TAU * 7 / 8.0, False)
+            self.context_arc(cx + math.cos(p) * a * WeatherAnimator.TWO_OVER_SQRT_2, cy + math.sin(p) * a *
                              WeatherAnimator.TWO_OVER_SQRT_2, a, p + WeatherAnimator.TAU * 5 / 8.0, p +
                              WeatherAnimator.TAU * 3 / 8.0, True)
-            self.context.closePath()
-            self.context.stroke()
+            self.context_closePath()
+            self.context_stroke()
 
         def draw_rain(self, t, cx, cy, cw, s):
             t /= 1350
@@ -161,23 +170,23 @@ class WeatherAnimator(object):
             b = float(WeatherAnimator.TAU * 11) / 12.0
             c = WeatherAnimator.TAU * 7 / 12.0
 
-            self.context.set(self.jsctxt, 'fillStyle', self.color)
+            self.context_set(self.jsctxt, 'fillStyle', self.color)
 
             for i in reversed(range(4)):
                 p = ((t + i + 1) / 4.0) % 1
                 x = cx + ((i - 1.5) / 1.5) * (i == 1 or (-1 if i == 2 else 1)) * a
                 y = cy + p * p * cw
-                self.context.beginPath()
-                self.context.moveTo(x, y - s * 1.5)
-                self.context.arc(x, y, s * 0.75, b, c, False)
-                self.context.fill()
+                self.context_beginPath()
+                self.context_moveTo(x, y - s * 1.5)
+                self.context_arc(x, y, s * 0.75, b, c, False)
+                self.context_fill()
 
         def draw_sleet(self, t, cx, cy, cw, s):
             t /= 750
 
             a = cw * 0.1875
 
-            self.context.set(self.jsctxt, 'lineWidth', s * 0.5)
+            self.context_set(self.jsctxt, 'lineWidth', s * 0.5)
 
             for i in reversed(range(4)):
                 p = ((t + i) / 4.0) % 1
@@ -200,7 +209,7 @@ class WeatherAnimator(object):
             wx = math.cos(w) * b
             wy = math.sin(w) * b
 
-            self.context.set(self.jsctxt, 'lineWidth', s * 0.5)
+            self.context_set(self.jsctxt, 'lineWidth', s * 0.5)
 
             for i in reversed(range(4)):
                 p = ((t + i + 1) / 4.0) % 1
@@ -219,7 +228,7 @@ class WeatherAnimator(object):
             c = cw * 0.21
             d = cw * 0.28
 
-            self.context.set(self.jsctxt, 'fillStyle', self.color)
+            self.context_set(self.jsctxt, 'fillStyle', self.color)
             self.draw_puffs(t, cx, cy, a, b, c, d)
 
             self.context.globalCompositeOperation = 'destination-out'
@@ -234,17 +243,17 @@ class WeatherAnimator(object):
             e = math.cos(d)
             f = math.sin(d)
 
-            self.context.set(self.jsctxt, 'lineWidth', s)
-            self.context.set(self.jsctxt, 'fillStyle', self.color)
+            self.context_set(self.jsctxt, 'lineWidth', s)
+            self.context_set(self.jsctxt, 'fillStyle', self.color)
 
-            self.context.beginPath()
-            self.context.arc(x, y, a, d, d + math.pi, False)
-            self.context.arc(x - b * e, y - b * f, c, d + math.pi, d, False)
-            self.context.arc(x + c * e, y + c * f, b, d + math.pi, d, True)
-            self.context.set(self.jsctxt, 'globalCompositeOperation', 'destination-out')
-            self.context.fill()
-            self.context.set(self.jsctxt, 'globalCompositeOperation', 'source-over')
-            self.context.stroke()
+            self.context_beginPath()
+            self.context_arc(x, y, a, d, d + math.pi, False)
+            self.context_arc(x - b * e, y - b * f, c, d + math.pi, d, False)
+            self.context_arc(x + c * e, y + c * f, b, d + math.pi, d, True)
+            self.context_set(self.jsctxt, 'globalCompositeOperation', 'destination-out')
+            self.context_fill()
+            self.context_set(self.jsctxt, 'globalCompositeOperation', 'source-over')
+            self.context_stroke()
 
         def draw_swoosh(self, t, cx, cy, cw, s, index, total):
             t /= 2500
@@ -254,10 +263,10 @@ class WeatherAnimator(object):
             c = (t + index - WIND_OFFSETS[index]['end']) % total
             e = (t + index) % total
 
-            self.context.set(self.jsctxt, 'lineWidth', s)
+            self.context_set(self.jsctxt, 'lineWidth', s)
 
             if a < 1:
-                self.context.beginPath()
+                self.context_beginPath()
 
                 a *= len(path) / 2 - 1
                 b = int(math.floor(a))
@@ -265,7 +274,7 @@ class WeatherAnimator(object):
                 b *= 2
                 b += 2
 
-                self.context.moveTo(
+                self.context_moveTo(
                         cx + (path[b - 2] * (1 - a) + path[b] * a) * cw,
                         cy + (path[b - 1] * (1 - a) + path[b + 1] * a) * cw
                 )
@@ -280,9 +289,9 @@ class WeatherAnimator(object):
                     i = b
                     while i != d:
                         i += 2
-                        self.context.lineTo(cx + path[i] * cw, cy + path[i + 1] * cw)
+                        self.context_lineTo(cx + path[i] * cw, cy + path[i + 1] * cw)
 
-                    self.context.lineTo(
+                    self.context_lineTo(
                             cx + (path[d - 2] * (1 - c) + path[d] * c) * cw,
                             cy + (path[d - 1] * (1 - c) + path[d + 1] * c) * cw
                     )
@@ -291,12 +300,12 @@ class WeatherAnimator(object):
                     i = b
                     while i < len(path):
                         i += 2
-                        self.context.lineTo(cx + path[i] * cw, cy + path[i + 1] * cw)
+                        self.context_lineTo(cx + path[i] * cw, cy + path[i + 1] * cw)
 
-                self.context.stroke()
+                self.context_stroke()
 
             elif c < 1:
-                self.context.beginPath()
+                self.context_beginPath()
 
                 c *= len(path) / 2 - 1
                 d = math.floor(c)
@@ -304,18 +313,18 @@ class WeatherAnimator(object):
                 d *= 2
                 d += 2
 
-                self.context.moveTo(cx + path[0] * cw, cy + path[1] * cw)
+                self.context_moveTo(cx + path[0] * cw, cy + path[1] * cw)
                 i = 2
                 while i < d:
                     i += 2
-                    self.context.lineTo(cx + path[i] * cw, cy + path[i + 1] * cw)
+                    self.context_lineTo(cx + path[i] * cw, cy + path[i + 1] * cw)
 
-                self.context.lineTo(
+                self.context_lineTo(
                         cx + (path[d - 2] * (1 - c) + path[d] * c) * cw,
                         cy + (path[d - 1] * (1 - c) + path[d + 1] * c) * cw
                 )
 
-                self.context.stroke()
+                self.context_stroke()
 
             if e < 1:
                 e *= len(path) / 2 - 1
@@ -402,7 +411,7 @@ class WeatherAnimator(object):
             e = math.floor(n - k * 0.5) + 0.5
             f = math.floor(n - k * 2.5) + 0.5
 
-            self.context.set(self.jsctxt, 'lineWidth', k)
+            self.context_set(self.jsctxt, 'lineWidth', k)
 
             self.draw_line(a + self.width * 0.2 + k * 0.5, e, b + self.width * 0.8 - k * 0.5, e)
             self.draw_line(c + self.width * 0.2 + k * 0.5, f, d + self.width * 0.8 - k * 0.5, f)

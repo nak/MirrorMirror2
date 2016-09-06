@@ -1,1 +1,1 @@
-recursive-include mirror_mirror/resources
+recursive-include mirror_mirror/resources *.*
