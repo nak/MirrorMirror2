@@ -4,7 +4,7 @@ from distutils.core import setup
 import glob
 
 setup(name="MirrorMirror2",
-      version="1.0.8",
+      version="1.0.9",
       packages=["mirror_mirror"],  # find_packages(),
       scripts=[],
 
