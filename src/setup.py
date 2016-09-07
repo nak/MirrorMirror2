@@ -4,13 +4,13 @@ from distutils.core import setup
 import glob
 
 setup(name="MirrorMirror2",
-      version="1.0.7",
+      version="1.0.8",
       packages=["mirror_mirror"],  # find_packages(),
       scripts=[],
 
       # Project uses reStructuredText, so ensure that the docutils get
       # installed or upgraded on the target machine
-      install_requires=['PyGGI>=1.1.2',
+      install_requires=['PyGGI>=1.1.3',
                         'google-api-python-client>=1.5.2',
                         'requests>=2.11.1',
                         'webapp2>=2.5.2',

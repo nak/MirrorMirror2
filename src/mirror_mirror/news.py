@@ -36,7 +36,7 @@ class NewsUpdater(BaseUpdater):
         """
         Update the view of the latest news headlines
         """
-        text=u"<div>"
+        text = u"<div>"
         for section in ['technology', 'u.s.', 'world']:
             resource_url = self.get_resource(section)
             response = requests.get(resource_url)

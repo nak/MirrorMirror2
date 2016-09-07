@@ -574,9 +574,12 @@ class WeatherUpdater(BaseUpdater):
         super(WeatherUpdater, self).__init__(webview,  5 * 60 * 1000)
         self.skycons = None
         self.animation = None
+        self.weather_ui = None
+        self.weather_temp = None
+        self.html = ""
 
     def update_view(self, weather):
-        html = """
+        self.html = """
 <div id="region">%(weather_city)s, %(weather_region)s</div>
 <div>%(weather_currently)s</div>
 <div>%(weather_wind_direction)s %(weather_wind_speed)s %(weather_units_speed)s</div>
@@ -589,11 +592,10 @@ class WeatherUpdater(BaseUpdater):
                        'weather_units_speed': weather.units.speed,
                        'weather_high': weather.high,
                        'weather_low': weather.low}
-        self._('#weather_temp').html('%(weather_temp)s&deg %(weather_units_temp)s' % {
+        self.weather_temp.html('%(weather_temp)s&deg %(weather_units_temp)s' % {
                        'weather_temp': weather.temp, 'weather_units_temp': weather.units.temp,
                         })
-        self._("#weather_text").html(html)
-        self._("#weather_text").html(html)
+        self.weather_ui.html(self.html)
 
         if int(weather.code) > 48:
             weather.code = 48
@@ -609,17 +611,17 @@ class WeatherUpdater(BaseUpdater):
             self.animation = animation
 
     def update_error(self, error):
-        show = self.context.get_jsobject("show")
-        show(error)
-        self._("#weather").html('<p>' + error + '</p>')
+        self.weather_ui.html('<p>' + error + '</p>')
 
     def update(self):
         """
         update the weather forecast
         """
+        if self.weather_ui is None:
+            self.weather_ui = self._("#weather_text")
+            self.weather_temp = self._('#weather_temp')
         self._.simpleWeather({
             'location': 'San Jose, CA',
-            # 'woeid': '',
             'zipcode': '95139',
             'unit': 'f',
             'success': self.update_view,
